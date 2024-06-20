@@ -1,28 +1,25 @@
-import { Kafka,Partitioners } from "kafkajs";
+import { Kafka, Partitioners } from "kafkajs";
 // import { storeMessage } from "../../app";
 
 import { Portal } from '../models/portal.model.js';
 
-export async function storeMessage(message,qId,UID){
-    console.log(message,qId,UID);
-    try{
-        const portal = await Portal.findOne({UID});
-        //   console.log(portal);
-        const targetPortal = portal.portals.find(p => p.querierId === qId);
-        if (targetPortal) {
-            targetPortal.messages.push(message);
-            await portal.save();
-            console.log("Message stored successfully.");
-        } else {
-            console.log("Querier not found.");
-        }
-        // res.json({saved:"true"});
-
-    }catch(err){
-        console.log("gemini")
-        console.log(err);
-        // res.json({saved:"false"});
-    }
+export async function storeBatchMessages(batch) {
+  if(!batch || batch.length === 0) return;
+  //   console.log(batch);
+  const bulkOps = batch.map(({ message, qId, UID }) => ({
+    updateOne: {
+      filter: { UID, "portals.querierId": qId },
+      update: { $push: { "portals.$.messages": message } },
+    },
+  }));
+  try{
+    const result = await Portal.bulkWrite(bulkOps, { ordered: false });
+    console.log("Message stored successfully.");
+    // res.json({saved:"true"});
+  }catch(err) {
+    console.log(err);
+    // res.json({saved:"false"});
+  }
 }
 
 const kafka = new Kafka({
@@ -49,20 +46,21 @@ export async function createProducer() {
     createPartitioner: Partitioners.LegacyPartitioner // Use LegacyPartitioner from Partitioners
   });
   await _producer.connect();
-  producer =_producer;
+  producer = _producer;
   return producer;
 }
 
-export async function produceMessage( message, qId, UID ) {
+export async function produceMessage(message, qId, UID) {
   const producer = await createProducer();
   // console.log(message,qId,UID)
   await producer.send({
     topic: "MESSAGES",
     messages: [{
-      partition:0,
+      partition: 0,
       key: "message",
       value: JSON.stringify({ message, qId, UID }),
-    }],  });
+    }],
+  });
   return true;
 }
 
@@ -75,24 +73,27 @@ export async function startMessageConsumer() {
 
   await consumer.run({
     autoCommit: true,
-    eachMessage: async ({ message }) => {
-      if (!message.value) return;
-
-      console.log(`New Message Received: ${message.value.toString()}`);
-
-      try {
-        const { message: msg, qId, UID } = JSON.parse(message.value.toString());
-        // console.log(message);
-        await storeMessage(msg, qId, UID);
-
-      } catch (err) {
-        console.error("Error processing message:", err.message);
+    eachBatch: async ({ batch, resolveOffset, heartbeat, commitOffsetsIfNecessary }) => {
+      if (!batch.messages.length) return;
+      const parsedBatch = [];
+      for (const msg of batch.messages) {
+        if (!msg.value) continue;
+        try{
+          const data = JSON.parse(msg.value.toString());
+          parsedBatch.push(data);
+          resolveOffset(msg.offset);
+        }catch (err) {
+          console.error(err.message);
+        }
+      }
+      if (parsedBatch.length > 0) {
+        await storeBatchMessages(parsedBatch);
       }
     },
   });
 }
 
-// Function to create topics (you need to create topics manually in local Kafka)
+// Function to create topics
 export async function createTopics() {
   const admin = kafka.admin();
   await admin.connect();
@@ -105,10 +106,9 @@ export async function createTopics() {
   await admin.disconnect();
 }
 
-// Ensure topics are created before starting the consumer
 export async function initialize() {
-  await createTopics(); // Create topics if not already created
-  await startMessageConsumer(); // Start the message consumer
+  await createTopics();
+  await startMessageConsumer();
 }
 initialize();
 
