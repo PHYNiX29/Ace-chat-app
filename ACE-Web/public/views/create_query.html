@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../querystyles.css">
+  <link rel="icon" type="image/x-icon" href="assets/icon.jpg">
+  <title>ACE</title>
+</head>
+<body>
+  <video autoplay muted loop id="video-background">
+    <source src="../assets/backgroundchat.mp4" type="video/mp4">
+  </video>
+  <div class="prompt hidden" id="queryFormDiv">
+    <h2>Submit Your Query</h2>
+    <form id="queryForm">
+      <input type="text" name="title" placeholder="Title" id="title" required>
+      <textarea name="query" placeholder="Your Query" id="queryMessage" required></textarea>
+      <input type="file" name="attachment">
+      <div id="submitcancel">
+      <button type="submit">Submit</button>
+    </div>
+    </form>
+  </div >
+  <div class="prompt" id="loginFormDiv">
+    <h2>Enter Room Code</h2>
+    <form id="querierLogin">
+      <input type="text" name="UID" placeholder="UID" id="UID" />
+      <button type="submit">Submit</button>
+    </div>
+    </form>
+  </div >
+<script src="../scripts/loginQuerier.js"></script>
+</body>
+</html>

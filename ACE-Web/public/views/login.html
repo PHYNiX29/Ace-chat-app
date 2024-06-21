@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Iceland&family=VT323&display=swap" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="../login.css" type="text/css">
+    <meta content="text/html; charset=UTF-8; X-Content-Type-Options=nosniff" http-equiv="Content-Type" />
+    <link rel="icon" type="image/x-icon" href="../assets/icon.jpg">>
+
+    <title>ACE</title>
+</head>
+<body>
+    <video autoplay muted loop id="video-background">
+        <source src="assets/back2.mp4" type="video/mp4">
+      </video>
+    <div class="container">
+    <form class="login-form">
+        <span class="login-title">Login</span>
+        <input type="text" name="username" placeholder="username" id="username">
+        <input type="password" name="password" placeholder="Password" id="password">
+        <input id="submit" type="submit" value="Log In" class="login-button">
+
+        <div class="separator">or</div>
+    
+        <span id="last" class="signup-text">Don't have an account ? <a href="/signup"><span id="signUp" class="signup-link">Sign Up</span></a></span>
+    </form>
+</div>
+ <div id="err" class="error-message"></div>
+    <script src="../scripts/login.js" defer></script>
+</body>
+</html>
+

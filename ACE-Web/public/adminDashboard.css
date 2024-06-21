@@ -1,0 +1,157 @@
+*{
+    margin: 0;
+    padding: 0;
+    overflow-x:hidden;
+}
+
+.container{
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    /* overflow: hidden;     */
+}
+
+header{
+    height: 12vh;
+    width: 100vw;
+    background-color:#353935;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+nav{
+    height: 100%;
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+}
+
+nav>div{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 25px;
+}
+
+.logo{
+    margin-right: 5px;
+    background-color: black;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+h2{
+    font-size: 3rem;
+}
+
+.logout{
+    font-size: 1.5rem;
+}
+
+.main{
+    height: 88vh;
+    width: 100vw;
+    background-color: #343434;
+    display: flex;
+}
+
+.sidebar{
+    height: 100%;
+    width: 25vw;
+    background-color: rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+.queries-menu{
+    width: 75vw;
+    height: 88vh;
+    background-color: #343434;
+    /* overflow: hidden; */
+}
+
+.heading{
+    /* height: 10%; */
+    height: 9vh;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+    display: flex;
+}
+.selected-status{
+    height: 100%;
+    font-size: 2.5rem;
+    margin:0 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.all-queries{
+    /* height: 90% */
+    height: 79vh;
+    width: 100%;
+    display: flex;
+    /* align-items: center; */
+    flex-direction: column;
+    background-color: #343434;
+    /* overflow-y: scroll; */
+}
+
+.query{
+    height: 100px;
+    width: 95%;
+    padding: 0 5%;
+    background-color: grey;
+    border: 2px solid #343434;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.all-status{
+    height: 12%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    /* background-color: beige; */
+    font-size: 3rem;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+.status{
+    height: 10%;
+    width: 90%;
+    background-color: #343434;
+    display: flex;
+    align-items: center;
+    padding-left: 9%;
+    border: 1px solid white;
+    font-size:1.5rem;
+    color: white;
+}
+
+.null{
+    /* position: absolute; */
+    /* background-color: #343434; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    font-size: 5rem;
+    font-family: 'Courier New', Courier, monospace;
+    color: white;
+}
+
+.hidden{
+    display: none;
+}
+
+.show{
+    display: block;
+}
