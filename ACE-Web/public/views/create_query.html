@@ -11,18 +11,17 @@
   <video autoplay muted loop id="video-background">
     <source src="../assets/backgroundchat.mp4" type="video/mp4">
   </video>
-  <div class="prompt hidden" id="queryFormDiv">
-    <h2>Submit Your Query</h2>
+  <div class="prompt " id="queryFormDiv">
+    <h2>Start new chat</h2>
     <form id="queryForm">
-      <input type="text" name="title" placeholder="Title" id="title" required>
-      <textarea name="query" placeholder="Your Query" id="queryMessage" required></textarea>
-      <input type="file" name="attachment">
+      <input type="text" name="title" placeholder="Emter Title of chat" id="title" required>
+      <textarea name="query" placeholder="message" id="queryMessage" required></textarea>
       <div id="submitcancel">
       <button type="submit">Submit</button>
     </div>
     </form>
   </div >
-  <div class="prompt" id="loginFormDiv">
+  <div class="prompt hidden" id="loginFormDiv">
     <h2>Enter Room Code</h2>
     <form id="querierLogin">
       <input type="text" name="UID" placeholder="UID" id="UID" />

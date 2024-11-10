@@ -13,12 +13,14 @@ import { Portal } from '../models/portal.model.js';
 import sendMail from '../utils/email.js'; 
 import { object } from 'zod';
 import dotenv from "dotenv";
-
+import cookieParser from "cookie-parser";
+// import ethers from "ethers";
 dotenv.config();
 
 const app = express();
 const router = express.Router();
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 // Mutual exclusion to prevent multiple entries on database at once
 const signUpQue = [];
@@ -26,8 +28,8 @@ let signUpIsLocked = false;
 let currentSignUp = [];
 
 router.post('/signup', async (req, res) => {
-
     res.clearCookie("G_ENABLED_IDPS");
+    console.log("request on signup");
     const userReq = req.body
     if (signUpIsLocked) {
             signUpQue.push(userReq);
@@ -51,21 +53,30 @@ router.post('/signup', async (req, res) => {
     async function signUp(userData){
         try {
             // const zodCheck = userRegistrationSchema.parse(req.body);
-            
+            console.log(userData);
             const hash = await bcrypt.hash(userData.password, 10);
 
-            const user = await User.findOne({ username: userData.username });
+            const user = await User.findOne({ email: userData.email });
 
             if(!user){
                 const newUser = await User.create({
-                    username: userData.username,
+                    email: userData.email,
                     password: hash,
-                    role: userData.role,
+                    role: userData.userType,
                 });
-                        
-                return { redirect: 'login' };
+
+                const accessToken = generateJwtToken({ _id: newUser._id });
+                const refreshToken = generateRefreshToken({ _id: newUser._id });
+                res.cookie("accessToken", accessToken, { httpOnly: true, sameSite: "strict" });
+                res.cookie("refreshToken", refreshToken, { httpOnly: true, sameSite: "strict" });
+
+                if(userData.userType === "admin"){
+                    return { redirect: 'generateRoom' };
+                }else{
+                    return { redirect: 'joinRoom' };
+                }
             }else{
-                return {err:"username already taken"}
+                return {err:"email already has an account"}
             }
     
         }
@@ -76,12 +87,13 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
+    console.log("request on login");
     res.clearCookie("G_ENABLED_IDPS");
 
     try {
         // const zodCheck = LoginSchema.parse(req.body);
         const userData = req.body;
-        const user = await User.findOne({ username: userData.username });
+        const user = await User.findOne({ email: userData.email });
         // const team = await Team.findOne({ name: userData.teamName });
 
 
@@ -111,8 +123,11 @@ router.post('/login', async (req, res) => {
                     // else{
                     //     res.json({redirect:"userLogin"})
                     // }
-
-                    res.json({redirect:"adminVerification"})
+                    if (user.role === "admin"){
+                        res.json({redirect:"generateRoom"});
+                    }else{
+                        res.json({redirect:"joinRoom"});
+                    }
                 } else {
                     console.error(err);
                     res.json({ err: "Invalid Details" });
@@ -128,6 +143,46 @@ router.post('/login', async (req, res) => {
     
 });
 
+router.post('/login-with-metamask', async (req, res) => {
+    const { address, message, signature ,role} = req.body;
+
+    try {
+        // Recover the address that signed the message
+        const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+
+        // Check if the recovered address matches the provided address
+        if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+            // return res.json({ success: false, error: 'Signature verification failed' });
+            let user = await User.findOne({ email: address });
+
+            // If user doesn't exist, create a new user with the Ethereum address as the username
+            if (!user) {
+                user = await User.create({ email: address, password: 'metamask',role:role }); // no password needed
+            }
+    
+            // Generate JWT tokens for the session
+            const accessToken = generateJwtToken({ _id: user._id });
+            const refreshToken = generateRefreshToken({ _id: user._id });
+            res.cookie("accessToken", accessToken, { httpOnly: true, sameSite: "strict" });
+            res.cookie("refreshToken", refreshToken, { httpOnly: true, sameSite: "strict" });
+            if(role === "admin"){
+                res.json({redirect:"generateRoom"})
+            }else{
+                res.json({redirect:"joinRoom"})
+            }
+        }else{
+            return res.json({ err: "Invalid Details" });
+        }
+
+        // Check if the user exists in the database
+       
+    } catch (error) {
+        console.error('Login with MetaMask failed:', error);
+        res.json({ success: false, error: 'Failed to login with MetaMask' });
+    }
+});
+
+
 // Mutex lock at Authority Verification
 
 const registerAuthorityQue = [];
@@ -135,6 +190,7 @@ let registerAuthorityIsLocked = false;
 let currentAuthorityRegister = [];
 
 router.post('/CreateRoom',authenticateToken, async(req,res)=>{
+    console.log("request on create room");
     const authorityData = req.body;
     if (registerAuthorityIsLocked) {
             registerAuthorityQue.push(authorityData);
@@ -198,7 +254,6 @@ router.post('/CreateRoom',authenticateToken, async(req,res)=>{
                 // }]
             })
     
-
             return{message:`your UID is ${UID}`}
     
         }catch(err){
@@ -219,6 +274,8 @@ router.post('/joinRoom',authenticateToken, async (req, res) => {
         const user = await Portal.findOne({UID:userData.UID});
         let hasQuery = false;
         const admin = await Portal.findOne({UID:userData.UID,creatorId:req.user._id});
+        console.log(admin);
+        // console.log(user);
         if(!admin){
             user.portals.forEach((el)=>{
                 if(el.querierId === req.user._id){
@@ -279,7 +336,7 @@ router.post("/submitQuery",authenticateToken,async(req,res)=>{
         res.cookie("accessToken", newAccessToken, { httpOnly: true, sameSite: "strict" });
         res.cookie("refreshToken", newRefreshToken, { httpOnly: true, sameSite: "strict" });
 
-        res.json({redirect:"temp"})}
+        res.json({redirect:"userChat"})}
         NewQuerier();
 })
 
@@ -372,4 +429,3 @@ router.post('/refresh', (req, res) => {
 });
 
 export default router;
-

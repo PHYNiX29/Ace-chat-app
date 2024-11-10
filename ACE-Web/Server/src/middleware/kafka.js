@@ -1,4 +1,4 @@
-import { Kafka, Partitioners  } from "kafkajs";
+import { Kafka,Partitioners } from "kafkajs";
 // import { storeMessage } from "../../app";
 
 import { Portal } from '../models/portal.model.js';
@@ -27,7 +27,8 @@ export async function storeMessage(message,qId,UID){
 
 const kafka = new Kafka({
   clientId: "my-app",
-  brokers: ["192.168.29.38:9092"], // Adjust based on your Kafka Docker setup
+  brokers: ["192.168.119.130:9092"], // Adjust based on your Kafka Docker setup
+  // brokers: ["kafka:9092"], // Adjust based on your Kafka Docker setup
   // ssl: {
   //   ca: [fs.readFileSync(path.resolve("./ca.pem"), "utf-8")],
   // },
@@ -45,19 +46,22 @@ export async function createProducer() {
   if (producer) return producer;
 
   const _producer = kafka.producer({
-    createPartitioner: Partitioners.LegacyPartitioner
-});
+    createPartitioner: Partitioners.LegacyPartitioner // Use LegacyPartitioner from Partitioners
+  });
   await _producer.connect();
-  producer = _producer;
+  producer =_producer;
   return producer;
 }
 
-export async function produceMessage({ message, qId, UID }) {
+export async function produceMessage( message, qId, UID ) {
   const producer = await createProducer();
+  // console.log(message,qId,UID)
   await producer.send({
     topic: "MESSAGES",
     messages: [{
-        value: JSON.stringify({ message, qId, UID }),
+      partition:0,
+      key: "message",
+      value: JSON.stringify({ message, qId, UID }),
     }],  });
   return true;
 }
@@ -78,6 +82,7 @@ export async function startMessageConsumer() {
 
       try {
         const { message: msg, qId, UID } = JSON.parse(message.value.toString());
+        // console.log(message);
         await storeMessage(msg, qId, UID);
 
       } catch (err) {
@@ -105,5 +110,6 @@ export async function initialize() {
   await createTopics(); // Create topics if not already created
   await startMessageConsumer(); // Start the message consumer
 }
+initialize();
 
 export { kafka };

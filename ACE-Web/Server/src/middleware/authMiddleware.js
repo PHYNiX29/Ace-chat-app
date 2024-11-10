@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import dotenv from "dotenv";
-
+import cookieParser from "cookie-parser";
 dotenv.config();
 
 export function authenticateToken(req, res, next) {
